@@ -23,6 +23,7 @@
 @property (weak, nonatomic) IBOutlet UISlider *rateSlider;
 @property (weak, nonatomic) IBOutlet UILabel *rateLabel;
 
+@property (nonatomic) ALAssetsLibrary *assetsLibrary;
 @property (nonatomic) AVURLAsset *asset;
 @property (nonatomic) AVAssetExportSession *exportSession;
 
@@ -80,15 +81,48 @@ typedef NS_ENUM(NSInteger, ExportResult) {
 }
 
 - (IBAction)chooseMovie:(id)sender {
-    [self.playbackView.player pause];
 
-    UIImagePickerController *picker = [[UIImagePickerController alloc] init];
-    picker.mediaTypes = @[(NSString*)kUTTypeMovie];
-    picker.videoQuality = UIImagePickerControllerQualityTypeHigh;
-    picker.delegate = self;
-    [self presentViewController:picker
-                       animated:YES
-                     completion:^{}];
+    if (!_assetsLibrary) {
+        _assetsLibrary = [[ALAssetsLibrary alloc]init];
+    }
+    [_assetsLibrary enumerateGroupsWithTypes:ALAssetsGroupSavedPhotos usingBlock:^(ALAssetsGroup *group, BOOL *stop) {
+        NSInteger numberOfAssets = [group numberOfAssets];
+        if (numberOfAssets > 0) {
+            [group enumerateAssetsWithOptions:NSEnumerationReverse usingBlock:^(ALAsset *result, NSUInteger index, BOOL *stop) {
+                if (result) {
+                    NSURL *url = result.defaultRepresentation.url;
+                    AVURLAsset *asset = [AVURLAsset assetWithURL:url];
+                    AVAssetTrack *track = [asset tracksWithMediaType:AVMediaTypeVideo][0];
+                    if (track.nominalFrameRate > 30) {
+                        dispatch_async(dispatch_get_main_queue(),^{
+                            [self buildSessionForMediaURL:result.defaultRepresentation.url];
+                            self.rateSlider.value = .25;
+                            [self rateChanged:self.rateSlider];
+                            
+                            if (self.asset && self.playbackView.player) {
+                                [self.playbackView.player addObserver:self
+                                                           forKeyPath:@"rate"
+                                                              options:(NSKeyValueObservingOptionNew|NSKeyValueObservingOptionOld)
+                                                              context:NULL];
+                            }
+                            self.status = StatusNormal;
+                        });
+                        *stop = YES;
+                    }
+                }
+            }];
+            *stop = YES;
+        }
+    } failureBlock:^(NSError *error) {
+        dispatch_async(dispatch_get_main_queue(),^{
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:[error description]
+                                                            message:nil
+                                                           delegate:nil
+                                                  cancelButtonTitle:@"OK"
+                                                  otherButtonTitles:nil];
+            [alert show];
+        });
+    }];
 }
 
 - (IBAction)playOrPause:(id)sender {
@@ -100,6 +134,8 @@ typedef NS_ENUM(NSInteger, ExportResult) {
 }
 
 - (IBAction)export:(id)sender {
+    // アセットからトラックを取得
+    AVAssetTrack *videoAssetTrack = [self.asset tracksWithMediaType:AVMediaTypeVideo][0];
     // 現在の再生レートを適用したコンポジションを作成
     AVMutableComposition *composition = [AVMutableComposition composition];
     [composition insertTimeRange:CMTimeRangeMake(kCMTimeZero, self.asset.duration)
@@ -111,16 +147,28 @@ typedef NS_ENUM(NSInteger, ExportResult) {
     [composition scaleTimeRange:CMTimeRangeMake(kCMTimeZero, self.asset.duration)
                      toDuration:newDuration];
 
+    // オリエンテーションを設定
+    // CGAffineTransformをコピー
+    videoTrack.preferredTransform = videoAssetTrack.preferredTransform;
+
     // エクスポートセッションを作成
     self.exportSession =
     [AVAssetExportSession exportSessionWithAsset:composition
                                       presetName:AVAssetExportPresetHighestQuality];
+//                                      presetName:AVAssetExportPresetPassthrough]; // パススルーは音が使えない。
+    self.exportSession.audioTimePitchAlgorithm = self.audioTimePitchAlgorithm;
+    /* AVAudioTimePitchAlgorithmVarispeed  / ピッチ変わる
+     * AVAudioTimePitchAlgorithmSpectral   / ピッチ維持、ノイズも増幅される
+     * AVAudioTimePitchAlgorithmTimeDomain / ピッチ維持、ノイズも増幅される
+     */
 
     NSString *filePath = NSTemporaryDirectory();
-    filePath = [filePath stringByAppendingPathComponent:@"out.mov"];
+    filePath = [filePath stringByAppendingPathComponent:@"out.MOV"];
     [[NSFileManager defaultManager] removeItemAtPath:filePath error:nil];
     self.exportSession.outputURL = [NSURL fileURLWithPath:filePath];
     self.exportSession.outputFileType = AVFileTypeQuickTimeMovie;
+    self.exportSession.metadata = self.asset.commonMetadata; // メタデータを継承
+    self.exportSession.shouldOptimizeForNetworkUse = NO;
 
     // エクスポート開始
     self.status = StatusExporting;
