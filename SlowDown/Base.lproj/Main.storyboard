@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="4511" systemVersion="13A598" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" initialViewController="vXZ-lx-hvc">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="4510" systemVersion="12F45" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" initialViewController="vXZ-lx-hvc">
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="3745"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="3742"/>
     </dependencies>
     <scenes>
         <!--View Controller-->
@@ -17,13 +17,13 @@
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="j0b-NZ-3xJ">
-                                <rect key="frame" x="20" y="412" width="59" height="30"/>
+                                <rect key="frame" x="20" y="412" width="72" height="30"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <state key="normal" title="Pick last">
+                                <state key="normal" title="Pick latest">
                                     <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
                                 <connections>
-                                    <action selector="chooseMovie:" destination="vXZ-lx-hvc" eventType="touchUpInside" id="S3p-4b-rxj"/>
+                                    <action selector="pickLatest:" destination="vXZ-lx-hvc" eventType="touchUpInside" id="QZT-cV-c3i"/>
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="2gD-Nw-GNQ">
@@ -46,12 +46,6 @@
                                     <action selector="export:" destination="vXZ-lx-hvc" eventType="touchUpInside" id="3eI-D8-uzt"/>
                                 </connections>
                             </button>
-                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="     ↓ Choose a movie..." lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="pGO-D0-eeD">
-                                <rect key="frame" x="14" y="383" width="286" height="21"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                <nil key="highlightedColor"/>
-                            </label>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="fUw-Fu-pFA" customClass="PlayerView">
                                 <rect key="frame" x="0.0" y="164" width="320" height="240"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
@@ -65,7 +59,7 @@
                                 <rect key="frame" x="0.0" y="154" width="320" height="2"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                             </progressView>
-                            <slider opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" value="0.25" minValue="0.10000000000000001" maxValue="1" translatesAutoresizingMaskIntoConstraints="NO" id="6Rf-Ch-DcL">
+                            <slider opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" value="0.25" minValue="0.10000000000000001" maxValue="4" translatesAutoresizingMaskIntoConstraints="NO" id="6Rf-Ch-DcL">
                                 <rect key="frame" x="69" y="450" width="233" height="34"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <connections>
@@ -84,20 +78,17 @@
                         <constraints>
                             <constraint firstAttribute="centerX" secondItem="8KZ-Ad-yKm" secondAttribute="centerX" id="18L-u4-J0z"/>
                             <constraint firstItem="2gD-Nw-GNQ" firstAttribute="baseline" secondItem="VCb-RR-nyc" secondAttribute="baseline" id="4zh-Pk-vgi"/>
-                            <constraint firstItem="6Rf-Ch-DcL" firstAttribute="leading" secondItem="aFT-Gi-iMJ" secondAttribute="trailing" constant="8" symbolic="YES" id="6JM-tc-2ei"/>
                             <constraint firstAttribute="trailing" secondItem="8KZ-Ad-yKm" secondAttribute="trailing" id="ByW-Um-1Wv"/>
+                            <constraint firstItem="fUw-Fu-pFA" firstAttribute="top" secondItem="8KZ-Ad-yKm" secondAttribute="bottom" constant="8" symbolic="YES" id="CMx-4b-jb0"/>
                             <constraint firstItem="j0b-NZ-3xJ" firstAttribute="baseline" secondItem="2gD-Nw-GNQ" secondAttribute="baseline" id="Cjt-3j-Pvm"/>
                             <constraint firstAttribute="trailing" secondItem="6Rf-Ch-DcL" secondAttribute="trailing" constant="20" symbolic="YES" id="DKz-qI-lSj"/>
-                            <constraint firstAttribute="trailing" secondItem="pGO-D0-eeD" secondAttribute="trailing" constant="20" id="GK1-6P-iQz"/>
+                            <constraint firstItem="6Rf-Ch-DcL" firstAttribute="leading" secondItem="aFT-Gi-iMJ" secondAttribute="trailing" constant="8" symbolic="YES" id="JON-iZ-0zm"/>
                             <constraint firstItem="2gD-Nw-GNQ" firstAttribute="top" secondItem="fUw-Fu-pFA" secondAttribute="bottom" constant="8" symbolic="YES" id="PgY-RO-J70"/>
-                            <constraint firstItem="8KZ-Ad-yKm" firstAttribute="leading" secondItem="kh9-bI-dsS" secondAttribute="leading" id="SH9-jQ-NGN"/>
-                            <constraint firstItem="j0b-NZ-3xJ" firstAttribute="top" secondItem="pGO-D0-eeD" secondAttribute="bottom" constant="8" symbolic="YES" id="SRE-PA-QOo"/>
-                            <constraint firstItem="fUw-Fu-pFA" firstAttribute="top" secondItem="8KZ-Ad-yKm" secondAttribute="bottom" constant="8" symbolic="YES" id="Syb-70-TVq"/>
-                            <constraint firstItem="j0b-NZ-3xJ" firstAttribute="leading" secondItem="kh9-bI-dsS" secondAttribute="leading" constant="20" symbolic="YES" id="al6-x5-5ns"/>
-                            <constraint firstItem="pGO-D0-eeD" firstAttribute="leading" secondItem="kh9-bI-dsS" secondAttribute="leading" constant="14" id="cs5-RT-OPy"/>
+                            <constraint firstItem="8KZ-Ad-yKm" firstAttribute="leading" secondItem="kh9-bI-dsS" secondAttribute="leading" id="Yre-Lb-ZVA"/>
+                            <constraint firstItem="j0b-NZ-3xJ" firstAttribute="leading" secondItem="kh9-bI-dsS" secondAttribute="leading" constant="20" id="al6-x5-5ns"/>
                             <constraint firstAttribute="centerX" secondItem="fUw-Fu-pFA" secondAttribute="centerX" id="dYZ-Gz-fbB"/>
                             <constraint firstAttribute="centerY" secondItem="fUw-Fu-pFA" secondAttribute="centerY" id="dzm-xs-tcN"/>
-                            <constraint firstItem="aFT-Gi-iMJ" firstAttribute="leading" secondItem="kh9-bI-dsS" secondAttribute="leading" constant="20" id="eev-9o-Xg7"/>
+                            <constraint firstItem="aFT-Gi-iMJ" firstAttribute="leading" secondItem="kh9-bI-dsS" secondAttribute="leading" constant="20" symbolic="YES" id="eev-9o-Xg7"/>
                             <constraint firstItem="6Rf-Ch-DcL" firstAttribute="top" secondItem="2gD-Nw-GNQ" secondAttribute="bottom" constant="8" symbolic="YES" id="esq-9q-aPe"/>
                             <constraint firstAttribute="centerX" secondItem="2gD-Nw-GNQ" secondAttribute="centerX" id="ogJ-wz-wRa"/>
                             <constraint firstItem="aFT-Gi-iMJ" firstAttribute="centerY" secondItem="6Rf-Ch-DcL" secondAttribute="centerY" id="qxI-DZ-iPP"/>

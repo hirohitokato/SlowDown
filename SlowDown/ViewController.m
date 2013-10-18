@@ -83,8 +83,7 @@ typedef NS_ENUM(NSInteger, ExportResult) {
     self.rateLabel.text = text;
 }
 
-- (IBAction)chooseMovie:(id)sender {
-
+- (IBAction)pickLatest:(id)sender {
     if (!_assetsLibrary) {
         _assetsLibrary = [[ALAssetsLibrary alloc]init];
     }
@@ -187,7 +186,6 @@ typedef NS_ENUM(NSInteger, ExportResult) {
     self.exportSession.outputURL = [NSURL fileURLWithPath:filePath];
     self.exportSession.outputFileType = AVFileTypeQuickTimeMovie;
     self.exportSession.metadata = self.asset.commonMetadata; // メタデータを継承
-    self.exportSession.shouldOptimizeForNetworkUse = NO;
 
     // エクスポート開始
     self.status = StatusExporting;
