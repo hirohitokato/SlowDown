@@ -161,6 +161,7 @@ typedef NS_ENUM(NSInteger, ExportResult) {
     [[NSFileManager defaultManager] removeItemAtPath:filePath error:nil];
     self.exportSession.outputURL = [NSURL fileURLWithPath:filePath];
     self.exportSession.outputFileType = AVFileTypeQuickTimeMovie;
+    self.exportSession.metadata = self.asset.commonMetadata;
 
     // エクスポート開始
     self.status = StatusExporting;
