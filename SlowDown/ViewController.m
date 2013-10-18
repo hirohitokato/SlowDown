@@ -157,7 +157,7 @@ typedef NS_ENUM(NSInteger, ExportResult) {
                                       presetName:AVAssetExportPresetHighestQuality];
 
     NSString *filePath = NSTemporaryDirectory();
-    filePath = [filePath stringByAppendingPathComponent:@"out.mov"];
+    filePath = [filePath stringByAppendingPathComponent:@"out.MOV"];
     [[NSFileManager defaultManager] removeItemAtPath:filePath error:nil];
     self.exportSession.outputURL = [NSURL fileURLWithPath:filePath];
     self.exportSession.outputFileType = AVFileTypeQuickTimeMovie;
