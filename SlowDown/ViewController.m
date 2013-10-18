@@ -177,10 +177,8 @@ typedef NS_ENUM(NSInteger, ExportResult) {
     videoCompositionInstruction.timeRange = CMTimeRangeMake(kCMTimeZero, newDuration);
 
     // 最大120fpsとする
-    CMTime outputDuration = CMTimeMultiplyByFloat64(videoAssetTrack.minFrameDuration, self.rateSlider.value);
-    CMTimeShow(outputDuration);
-    CMTimeShow(videoAssetTrack.minFrameDuration);
-    if (CMTimeCompare(outputDuration, CMTimeMake(1, 120)) > 0) {
+    CMTime outputDuration = CMTimeMultiplyByFloat64(videoAssetTrack.minFrameDuration, 1.0/self.rateSlider.value);
+    if (CMTimeCompare(outputDuration, CMTimeMake(1, 120)) < 0) {
         outputDuration = CMTimeMake(1, 120);
     }
 
@@ -218,20 +216,21 @@ typedef NS_ENUM(NSInteger, ExportResult) {
     // エクスポート開始
     self.status = StatusExporting;
     __weak AVAssetExportSession *weakSession = self.exportSession;
+    __weak ALAssetsLibrary *weakAssetsLibrary = self.assetsLibrary;
 	[self.exportSession exportAsynchronouslyWithCompletionHandler:^{
+        NSLog(@"エクスポート処理から戻りました。url:%@", weakSession.outputURL);
 
         if (weakSession.status == AVAssetExportSessionStatusCompleted) {
             // カメラロールへの書き込み。
-            ALAssetsLibrary *library = [[ALAssetsLibrary alloc] init];
-            [library writeVideoAtPathToSavedPhotosAlbum:weakSession.outputURL
-                                        completionBlock:^(NSURL *assetURL,
-                                                          NSError *error) {
-                                            if (error) {
-                                                [self showAlertForResult:ExportResultFailure];
-                                            } else {
-                                                [self showAlertForResult:ExportResultSuccess];
-                                            }
-                                        }];
+            [weakAssetsLibrary writeVideoAtPathToSavedPhotosAlbum:weakSession.outputURL
+                                                  completionBlock:^(NSURL *assetURL,
+                                                                    NSError *error) {
+                                                      if (error) {
+                                                          [self showAlertForResult:ExportResultFailure];
+                                                      } else {
+                                                          [self showAlertForResult:ExportResultSuccess];
+                                                      }
+                                                  }];
         } else if (weakSession.status == AVAssetExportSessionStatusCancelled) {
             [self showAlertForResult:ExportResultCancelled];
         } else {
