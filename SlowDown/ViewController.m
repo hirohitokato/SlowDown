@@ -23,6 +23,7 @@
 @property (weak, nonatomic) IBOutlet UISlider *rateSlider;
 @property (weak, nonatomic) IBOutlet UILabel *rateLabel;
 
+@property (nonatomic) ALAssetsLibrary *assetsLibrary;
 @property (nonatomic) AVURLAsset *asset;
 @property (nonatomic) AVAssetExportSession *exportSession;
 
@@ -79,16 +80,48 @@ typedef NS_ENUM(NSInteger, ExportResult) {
     self.rateLabel.text = text;
 }
 
-- (IBAction)chooseMovie:(id)sender {
-    [self.playbackView.player pause];
-
-    UIImagePickerController *picker = [[UIImagePickerController alloc] init];
-    picker.mediaTypes = @[(NSString*)kUTTypeMovie];
-    picker.videoQuality = UIImagePickerControllerQualityTypeHigh;
-    picker.delegate = self;
-    [self presentViewController:picker
-                       animated:YES
-                     completion:^{}];
+- (IBAction)pickLatest:(id)sender {
+    if (!_assetsLibrary) {
+        _assetsLibrary = [[ALAssetsLibrary alloc]init];
+    }
+    [_assetsLibrary enumerateGroupsWithTypes:ALAssetsGroupSavedPhotos usingBlock:^(ALAssetsGroup *group, BOOL *stop) {
+        NSInteger numberOfAssets = [group numberOfAssets];
+        if (numberOfAssets > 0) {
+            [group enumerateAssetsWithOptions:NSEnumerationReverse usingBlock:^(ALAsset *result, NSUInteger index, BOOL *stop) {
+                if (result) {
+                    NSURL *url = result.defaultRepresentation.url;
+                    AVURLAsset *asset = [AVURLAsset assetWithURL:url];
+                    AVAssetTrack *track = [asset tracksWithMediaType:AVMediaTypeVideo][0];
+                    if (track.nominalFrameRate > 30) {
+                        dispatch_async(dispatch_get_main_queue(),^{
+                            [self buildSessionForMediaURL:result.defaultRepresentation.url];
+                            self.rateSlider.value = .25;
+                            [self rateChanged:self.rateSlider];
+                            
+                            if (self.asset && self.playbackView.player) {
+                                [self.playbackView.player addObserver:self
+                                                           forKeyPath:@"rate"
+                                                              options:(NSKeyValueObservingOptionNew|NSKeyValueObservingOptionOld)
+                                                              context:NULL];
+                            }
+                            self.status = StatusNormal;
+                        });
+                        *stop = YES;
+                    }
+                }
+            }];
+            *stop = YES;
+        }
+    } failureBlock:^(NSError *error) {
+        dispatch_async(dispatch_get_main_queue(),^{
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:[error description]
+                                                            message:nil
+                                                           delegate:nil
+                                                  cancelButtonTitle:@"OK"
+                                                  otherButtonTitles:nil];
+            [alert show];
+        });
+    }];
 }
 
 - (IBAction)playOrPause:(id)sender {
