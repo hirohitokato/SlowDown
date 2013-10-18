@@ -17,7 +17,7 @@
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="j0b-NZ-3xJ">
-                                <rect key="frame" x="20" y="414" width="72" height="30"/>
+                                <rect key="frame" x="20" y="412" width="72" height="30"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <state key="normal" title="Pick latest">
                                     <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
@@ -27,7 +27,7 @@
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="2gD-Nw-GNQ">
-                                <rect key="frame" x="145" y="414" width="30" height="30"/>
+                                <rect key="frame" x="145" y="412" width="30" height="30"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <state key="normal" title="Play">
                                     <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
@@ -37,7 +37,7 @@
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="VCb-RR-nyc">
-                                <rect key="frame" x="254" y="414" width="46" height="30"/>
+                                <rect key="frame" x="254" y="412" width="46" height="30"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <state key="normal" title="Export">
                                     <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
@@ -58,19 +58,16 @@
                             <progressView opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="8KZ-Ad-yKm">
                                 <rect key="frame" x="0.0" y="154" width="320" height="2"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <constraints>
-                                    <constraint firstAttribute="width" constant="320" id="ZC8-Hx-1F3"/>
-                                </constraints>
                             </progressView>
-                            <slider opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" value="1" minValue="0.10000000000000001" maxValue="4" translatesAutoresizingMaskIntoConstraints="NO" id="6Rf-Ch-DcL">
-                                <rect key="frame" x="59" y="460" width="243" height="34"/>
+                            <slider opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" value="0.25" minValue="0.10000000000000001" maxValue="4" translatesAutoresizingMaskIntoConstraints="NO" id="6Rf-Ch-DcL">
+                                <rect key="frame" x="69" y="450" width="233" height="34"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <connections>
                                     <action selector="rateChanged:" destination="vXZ-lx-hvc" eventType="valueChanged" id="Ezu-1W-mbb"/>
                                 </connections>
                             </slider>
-                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="x1.0" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="aFT-Gi-iMJ">
-                                <rect key="frame" x="20" y="466" width="33" height="21"/>
+                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="x0.25" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="aFT-Gi-iMJ">
+                                <rect key="frame" x="20" y="456" width="43" height="21"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                 <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
@@ -81,24 +78,21 @@
                         <constraints>
                             <constraint firstAttribute="centerX" secondItem="8KZ-Ad-yKm" secondAttribute="centerX" id="18L-u4-J0z"/>
                             <constraint firstItem="2gD-Nw-GNQ" firstAttribute="baseline" secondItem="VCb-RR-nyc" secondAttribute="baseline" id="4zh-Pk-vgi"/>
-                            <constraint firstItem="6Rf-Ch-DcL" firstAttribute="leading" secondItem="aFT-Gi-iMJ" secondAttribute="trailing" constant="8" id="6JM-tc-2ei"/>
                             <constraint firstAttribute="trailing" secondItem="8KZ-Ad-yKm" secondAttribute="trailing" id="ByW-Um-1Wv"/>
-                            <constraint firstItem="fUw-Fu-pFA" firstAttribute="top" secondItem="8KZ-Ad-yKm" secondAttribute="bottom" constant="8" id="CMx-4b-jb0"/>
+                            <constraint firstItem="fUw-Fu-pFA" firstAttribute="top" secondItem="8KZ-Ad-yKm" secondAttribute="bottom" constant="8" symbolic="YES" id="CMx-4b-jb0"/>
                             <constraint firstItem="j0b-NZ-3xJ" firstAttribute="baseline" secondItem="2gD-Nw-GNQ" secondAttribute="baseline" id="Cjt-3j-Pvm"/>
-                            <constraint firstAttribute="trailing" secondItem="6Rf-Ch-DcL" secondAttribute="trailing" constant="20" id="DKz-qI-lSj"/>
-                            <constraint firstAttribute="trailing" secondItem="pGO-D0-eeD" secondAttribute="trailing" constant="20" id="GK1-6P-iQz"/>
-                            <constraint firstItem="2gD-Nw-GNQ" firstAttribute="top" secondItem="fUw-Fu-pFA" secondAttribute="bottom" constant="10" id="PgY-RO-J70"/>
-                            <constraint firstItem="j0b-NZ-3xJ" firstAttribute="top" secondItem="pGO-D0-eeD" secondAttribute="bottom" constant="15" id="SRE-PA-QOo"/>
+                            <constraint firstAttribute="trailing" secondItem="6Rf-Ch-DcL" secondAttribute="trailing" constant="20" symbolic="YES" id="DKz-qI-lSj"/>
+                            <constraint firstItem="6Rf-Ch-DcL" firstAttribute="leading" secondItem="aFT-Gi-iMJ" secondAttribute="trailing" constant="8" symbolic="YES" id="JON-iZ-0zm"/>
+                            <constraint firstItem="2gD-Nw-GNQ" firstAttribute="top" secondItem="fUw-Fu-pFA" secondAttribute="bottom" constant="8" symbolic="YES" id="PgY-RO-J70"/>
                             <constraint firstItem="8KZ-Ad-yKm" firstAttribute="leading" secondItem="kh9-bI-dsS" secondAttribute="leading" id="Yre-Lb-ZVA"/>
                             <constraint firstItem="j0b-NZ-3xJ" firstAttribute="leading" secondItem="kh9-bI-dsS" secondAttribute="leading" constant="20" id="al6-x5-5ns"/>
-                            <constraint firstItem="pGO-D0-eeD" firstAttribute="leading" secondItem="kh9-bI-dsS" secondAttribute="leading" constant="14" id="cs5-RT-OPy"/>
                             <constraint firstAttribute="centerX" secondItem="fUw-Fu-pFA" secondAttribute="centerX" id="dYZ-Gz-fbB"/>
                             <constraint firstAttribute="centerY" secondItem="fUw-Fu-pFA" secondAttribute="centerY" id="dzm-xs-tcN"/>
-                            <constraint firstItem="aFT-Gi-iMJ" firstAttribute="leading" secondItem="kh9-bI-dsS" secondAttribute="leading" constant="20" id="eev-9o-Xg7"/>
-                            <constraint firstItem="6Rf-Ch-DcL" firstAttribute="top" secondItem="2gD-Nw-GNQ" secondAttribute="bottom" constant="16" id="esq-9q-aPe"/>
+                            <constraint firstItem="aFT-Gi-iMJ" firstAttribute="leading" secondItem="kh9-bI-dsS" secondAttribute="leading" constant="20" symbolic="YES" id="eev-9o-Xg7"/>
+                            <constraint firstItem="6Rf-Ch-DcL" firstAttribute="top" secondItem="2gD-Nw-GNQ" secondAttribute="bottom" constant="8" symbolic="YES" id="esq-9q-aPe"/>
                             <constraint firstAttribute="centerX" secondItem="2gD-Nw-GNQ" secondAttribute="centerX" id="ogJ-wz-wRa"/>
                             <constraint firstItem="aFT-Gi-iMJ" firstAttribute="centerY" secondItem="6Rf-Ch-DcL" secondAttribute="centerY" id="qxI-DZ-iPP"/>
-                            <constraint firstAttribute="trailing" secondItem="VCb-RR-nyc" secondAttribute="trailing" constant="20" id="zdg-n5-AI6"/>
+                            <constraint firstAttribute="trailing" secondItem="VCb-RR-nyc" secondAttribute="trailing" constant="20" symbolic="YES" id="zdg-n5-AI6"/>
                         </constraints>
                     </view>
                     <connections>
