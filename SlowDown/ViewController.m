@@ -26,7 +26,7 @@
 @property (nonatomic) ALAssetsLibrary *assetsLibrary;
 @property (nonatomic) AVURLAsset *asset;
 @property (nonatomic) AVAssetExportSession *exportSession;
-
+@property (nonatomic) NSString *audioTimePitchAlgorithm;
 @property (nonatomic) CurrentStatus status;
 @end
 
@@ -41,6 +41,8 @@ typedef NS_ENUM(NSInteger, ExportResult) {
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+
+    self.audioTimePitchAlgorithm = AVAudioTimePitchAlgorithmVarispeed;
 
     __weak ViewController *weakSelf = self;
 
@@ -74,6 +76,7 @@ typedef NS_ENUM(NSInteger, ExportResult) {
 - (IBAction)rateChanged:(UISlider*)sender {
     [self.playbackView.player pause];
 
+    // 0.05おきにステップする
     float value = roundf(sender.value * 20) / 20.0f;
     [sender setValue:value animated:YES];
     NSString *text = [NSString stringWithFormat:@"x%.2f", sender.value];
@@ -256,6 +259,8 @@ typedef NS_ENUM(NSInteger, ExportResult) {
 
     // 再生用のセッティング
     AVPlayerItem *item = [AVPlayerItem playerItemWithAsset:self.asset];
+    item.audioTimePitchAlgorithm = self.audioTimePitchAlgorithm;
+
     AVPlayer *player = [AVPlayer playerWithPlayerItem:item];
     self.playbackView.player = player;
 
