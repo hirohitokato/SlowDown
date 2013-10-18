@@ -143,6 +143,13 @@ typedef NS_ENUM(NSInteger, ExportResult) {
                                                  1.0/self.rateSlider.value);
     [composition scaleTimeRange:CMTimeRangeMake(kCMTimeZero, self.asset.duration)
                      toDuration:newDuration];
+    
+    // オリエンテーションを設定
+    AVAssetTrack *videoAssetTrack = [self.asset tracksWithMediaType:AVMediaTypeVideo][0];
+    // compositionには既にcompositionTrackが入ってるので、それを取り出す
+    AVMutableCompositionTrack *videoCompositionTrack = [composition mutableTrackCompatibleWithTrack:videoAssetTrack];
+    // CGAffineTransformをコピー
+    videoCompositionTrack.preferredTransform = videoAssetTrack.preferredTransform;
 
     // エクスポートセッションを作成
     self.exportSession =
