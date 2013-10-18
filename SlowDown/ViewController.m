@@ -139,16 +139,32 @@ typedef NS_ENUM(NSInteger, ExportResult) {
 - (IBAction)export:(id)sender {
     // アセットからトラックを取得
     AVAssetTrack *videoAssetTrack = [self.asset tracksWithMediaType:AVMediaTypeVideo][0];
+    AVAssetTrack *audioAssetTrack = [self.asset tracksWithMediaType:AVMediaTypeAudio][0];
+
     // 現在の再生レートを適用したコンポジションを作成
     AVMutableComposition *composition = [AVMutableComposition composition];
-    [composition insertTimeRange:CMTimeRangeMake(kCMTimeZero, self.asset.duration)
-                         ofAsset:self.asset
-                          atTime:kCMTimeZero
-                           error:nil];
+    AVMutableCompositionTrack *videoTrack =
+    [composition addMutableTrackWithMediaType:AVMediaTypeVideo
+                             preferredTrackID:kCMPersistentTrackID_Invalid];
+    AVMutableCompositionTrack *audioTrack =
+    [composition addMutableTrackWithMediaType:AVMediaTypeAudio
+                             preferredTrackID:kCMPersistentTrackID_Invalid];
+
+    // アセットのトラックをコンポジション上に挿入し、再生レートを指定
+    [videoTrack insertTimeRange:CMTimeRangeMake(kCMTimeZero, self.asset.duration)
+                        ofTrack:videoAssetTrack
+                         atTime:kCMTimeZero
+                          error:nil];
+    [audioTrack insertTimeRange:CMTimeRangeMake(kCMTimeZero, self.asset.duration)
+                        ofTrack:audioAssetTrack
+                         atTime:kCMTimeZero
+                          error:nil];
     CMTime newDuration = CMTimeMultiplyByFloat64(self.asset.duration,
                                                  1.0/self.rateSlider.value);
-    [composition scaleTimeRange:CMTimeRangeMake(kCMTimeZero, self.asset.duration)
-                     toDuration:newDuration];
+    [videoTrack scaleTimeRange:CMTimeRangeMake(kCMTimeZero, self.asset.duration)
+                    toDuration:newDuration];
+    [audioTrack scaleTimeRange:CMTimeRangeMake(kCMTimeZero, self.asset.duration)
+                    toDuration:newDuration];
 
     // オリエンテーションを設定
     // CGAffineTransformをコピー
@@ -175,7 +191,7 @@ typedef NS_ENUM(NSInteger, ExportResult) {
 
     // エクスポート開始
     self.status = StatusExporting;
-    AVAssetExportSession *weakSession = self.exportSession;
+    __weak AVAssetExportSession *weakSession = self.exportSession;
 	[self.exportSession exportAsynchronouslyWithCompletionHandler:^{
 
         if (weakSession.status == AVAssetExportSessionStatusCompleted) {
