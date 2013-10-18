@@ -165,33 +165,39 @@ typedef NS_ENUM(NSInteger, ExportResult) {
     [audioTrack scaleTimeRange:CMTimeRangeMake(kCMTimeZero, self.asset.duration)
                     toDuration:newDuration];
 
-    // フレームレートを120fps上限とするためのインストラクション・ビデオコンポジション作成。
-    // （不透明にしてオリエンテーションをオリジナルに合わせる）
-    AVMutableVideoCompositionLayerInstruction *instruction =
-    [AVMutableVideoCompositionLayerInstruction videoCompositionLayerInstructionWithAssetTrack:videoTrack];
-    [instruction setOpacity:1.0 atTime:kCMTimeZero];
-    [instruction setTransform:videoAssetTrack.preferredTransform atTime:kCMTimeZero];
-    AVMutableVideoCompositionInstruction *videoCompositionInstruction =
-    [AVMutableVideoCompositionInstruction videoCompositionInstruction];
-    videoCompositionInstruction.layerInstructions = @[instruction];
-    videoCompositionInstruction.timeRange = CMTimeRangeMake(kCMTimeZero, newDuration);
-
+    AVMutableVideoComposition *videoComposition = nil;
     // 最大120fpsとする
     CMTime outputDuration = CMTimeMultiplyByFloat64(videoAssetTrack.minFrameDuration, 1.0/self.rateSlider.value);
     if (CMTimeCompare(outputDuration, CMTimeMake(1, 120)) < 0) {
         outputDuration = CMTimeMake(1, 120);
+        // フレームレートを120fps上限とするためのインストラクション・ビデオコンポジション作成。
+        // （不透明にしてオリエンテーションをオリジナルに合わせる）
+        AVMutableVideoCompositionLayerInstruction *instruction =
+        [AVMutableVideoCompositionLayerInstruction videoCompositionLayerInstructionWithAssetTrack:videoTrack];
+        [instruction setOpacity:1.0 atTime:kCMTimeZero];
+        [instruction setTransform:videoAssetTrack.preferredTransform atTime:kCMTimeZero];
+        AVMutableVideoCompositionInstruction *videoCompositionInstruction =
+        [AVMutableVideoCompositionInstruction videoCompositionInstruction];
+        videoCompositionInstruction.layerInstructions = @[instruction];
+        videoCompositionInstruction.timeRange = CMTimeRangeMake(kCMTimeZero, newDuration);
+        
+        videoComposition = [AVMutableVideoComposition videoComposition];
+        videoComposition.frameDuration = outputDuration;
+        
+        // オリエンテーションを反映したレンダリングサイズを指定
+        CGSize renderSize =CGSizeApplyAffineTransform([videoAssetTrack naturalSize],
+                                                      videoAssetTrack.preferredTransform);
+        renderSize.height = fabsf(renderSize.height); // @FIXME:なぜかマイナスに
+        renderSize.width = fabsf(renderSize.width);   // @FIXME:なぜかマイナスに
+        videoComposition.renderSize = renderSize;
+        videoComposition.instructions = @[videoCompositionInstruction];
+        
+    } else {
+        // オリエンテーションを設定
+        // CGAffineTransformをコピー
+        videoTrack.preferredTransform = videoAssetTrack.preferredTransform;
     }
-
-    AVMutableVideoComposition *videoComposition = [AVMutableVideoComposition videoComposition];
-    videoComposition.frameDuration = outputDuration;
-
-    // オリエンテーションを反映したレンダリングサイズを指定
-    CGSize renderSize =CGSizeApplyAffineTransform([videoAssetTrack naturalSize],
-                                                  videoAssetTrack.preferredTransform);
-    renderSize.height = fabsf(renderSize.height); // @FIXME:なぜかマイナスに
-    renderSize.width = fabsf(renderSize.width);   // @FIXME:なぜかマイナスに
-    videoComposition.renderSize = renderSize;
-    videoComposition.instructions = @[videoCompositionInstruction];
+    
 
     // エクスポートセッションを作成
     self.exportSession =
