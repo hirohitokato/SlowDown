@@ -155,6 +155,10 @@ typedef NS_ENUM(NSInteger, ExportResult) {
     self.exportSession =
     [AVAssetExportSession exportSessionWithAsset:composition
                                       presetName:AVAssetExportPresetHighestQuality];
+//                                      presetName:AVAssetExportPresetPassthrough]; // パススルーは音が使えない。
+    self.exportSession.audioTimePitchAlgorithm = AVAudioTimePitchAlgorithmVarispeed;  // ピッチ変わる
+//    self.exportSession.audioTimePitchAlgorithm = AVAudioTimePitchAlgorithmSpectral; // ピッチ維持、ノイズも増幅される
+//    self.exportSession.audioTimePitchAlgorithm = AVAudioTimePitchAlgorithmTimeDomain; // ピッチ維持、ノイズも増幅される
 
     NSString *filePath = NSTemporaryDirectory();
     filePath = [filePath stringByAppendingPathComponent:@"out.MOV"];
