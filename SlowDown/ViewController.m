@@ -237,7 +237,6 @@ typedef NS_ENUM(NSInteger, ExportResult) {
             [self showAlertForResult:ExportResultFailure];
         }
         self.status = StatusNormal;
-        self.progressBar.progress = 0;
     }];
 
     // プログレスバーを非同期に更新
@@ -393,6 +392,7 @@ typedef NS_ENUM(NSInteger, ExportResult) {
                                                              cancelButtonTitle:@"OK"
                                                              otherButtonTitles:nil];
                        [alert show];
+                       self.progressBar.progress = 0;
                    });
 }
 @end
