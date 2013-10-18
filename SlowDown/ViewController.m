@@ -165,9 +165,35 @@ typedef NS_ENUM(NSInteger, ExportResult) {
     [audioTrack scaleTimeRange:CMTimeRangeMake(kCMTimeZero, self.asset.duration)
                     toDuration:newDuration];
 
-    // オリエンテーションを設定
-    // CGAffineTransformをコピー
-    videoTrack.preferredTransform = videoAssetTrack.preferredTransform;
+    // フレームレートを120fps上限とするためのインストラクション・ビデオコンポジション作成。
+    // （不透明にしてオリエンテーションをオリジナルに合わせる）
+    AVMutableVideoCompositionLayerInstruction *instruction =
+    [AVMutableVideoCompositionLayerInstruction videoCompositionLayerInstructionWithAssetTrack:videoTrack];
+    [instruction setOpacity:1.0 atTime:kCMTimeZero];
+    [instruction setTransform:videoAssetTrack.preferredTransform atTime:kCMTimeZero];
+    AVMutableVideoCompositionInstruction *videoCompositionInstruction =
+    [AVMutableVideoCompositionInstruction videoCompositionInstruction];
+    videoCompositionInstruction.layerInstructions = @[instruction];
+    videoCompositionInstruction.timeRange = CMTimeRangeMake(kCMTimeZero, newDuration);
+
+    // 最大120fpsとする
+    CMTime outputDuration = CMTimeMultiplyByFloat64(videoAssetTrack.minFrameDuration, self.rateSlider.value);
+    CMTimeShow(outputDuration);
+    CMTimeShow(videoAssetTrack.minFrameDuration);
+    if (CMTimeCompare(outputDuration, CMTimeMake(1, 120)) > 0) {
+        outputDuration = CMTimeMake(1, 120);
+    }
+
+    AVMutableVideoComposition *videoComposition = [AVMutableVideoComposition videoComposition];
+    videoComposition.frameDuration = outputDuration;
+
+    // オリエンテーションを反映したレンダリングサイズを指定
+    CGSize renderSize =CGSizeApplyAffineTransform([videoAssetTrack naturalSize],
+                                                  videoAssetTrack.preferredTransform);
+    renderSize.height = fabsf(renderSize.height); // @FIXME:なぜかマイナスに
+    renderSize.width = fabsf(renderSize.width);   // @FIXME:なぜかマイナスに
+    videoComposition.renderSize = renderSize;
+    videoComposition.instructions = @[videoCompositionInstruction];
 
     // エクスポートセッションを作成
     self.exportSession =
@@ -186,6 +212,8 @@ typedef NS_ENUM(NSInteger, ExportResult) {
     self.exportSession.outputURL = [NSURL fileURLWithPath:filePath];
     self.exportSession.outputFileType = AVFileTypeQuickTimeMovie;
     self.exportSession.metadata = self.asset.commonMetadata; // メタデータを継承
+
+    self.exportSession.videoComposition = videoComposition;
 
     // エクスポート開始
     self.status = StatusExporting;
