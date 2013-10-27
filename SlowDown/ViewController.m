@@ -91,7 +91,7 @@ typedef NS_ENUM(NSInteger, ExportResult) {
         NSInteger numberOfAssets = [group numberOfAssets];
         if (numberOfAssets > 0) {
             [group enumerateAssetsWithOptions:NSEnumerationReverse usingBlock:^(ALAsset *result, NSUInteger index, BOOL *stop) {
-                if (result) {
+                if (result && [[result valueForProperty:ALAssetPropertyType] isEqualToString:ALAssetTypeVideo]) {
                     NSURL *url = result.defaultRepresentation.url;
                     AVURLAsset *asset = [AVURLAsset assetWithURL:url];
                     AVAssetTrack *track = [asset tracksWithMediaType:AVMediaTypeVideo][0];
