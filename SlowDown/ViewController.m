@@ -88,6 +88,7 @@ typedef NS_ENUM(NSInteger, ExportResult) {
         _assetsLibrary = [[ALAssetsLibrary alloc]init];
     }
     [_assetsLibrary enumerateGroupsWithTypes:ALAssetsGroupSavedPhotos usingBlock:^(ALAssetsGroup *group, BOOL *stop) {
+        [group setAssetsFilter:[ALAssetsFilter allVideos]];
         NSInteger numberOfAssets = [group numberOfAssets];
         if (numberOfAssets > 0) {
             [group enumerateAssetsWithOptions:NSEnumerationReverse usingBlock:^(ALAsset *result, NSUInteger index, BOOL *stop) {
