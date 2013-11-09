@@ -23,7 +23,6 @@
 @property (weak, nonatomic) IBOutlet UISlider *rateSlider;
 @property (weak, nonatomic) IBOutlet UILabel *rateLabel;
 
-@property (nonatomic) ALAssetsLibrary *assetsLibrary;
 @property (nonatomic) AVURLAsset *asset;
 @property (nonatomic) AVAssetExportSession *exportSession;
 @property (nonatomic) NSString *audioTimePitchAlgorithm;
@@ -59,6 +58,10 @@ typedef NS_ENUM(NSInteger, ExportResult) {
      }];
 
     self.status = StatusNormal;
+    
+    if (self.mediaURL) {
+        [self buildSessionForMediaURL:self.mediaURL];
+    }
 }
 
 - (void)dealloc
