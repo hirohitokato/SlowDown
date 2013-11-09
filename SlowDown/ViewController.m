@@ -28,6 +28,7 @@
 @property (nonatomic) AVAssetExportSession *exportSession;
 @property (nonatomic) NSString *audioTimePitchAlgorithm;
 @property (nonatomic) CurrentStatus status;
+@property (nonatomic) id periodicObserver;
 @end
 
 @implementation ViewController
@@ -64,6 +65,7 @@ typedef NS_ENUM(NSInteger, ExportResult) {
 {
     [[NSNotificationCenter defaultCenter]
      removeObserver:self];
+    [self removeObserverForPlayer:self.playbackView.player];
 }
 
 - (void)didReceiveMemoryWarning
@@ -265,6 +267,37 @@ typedef NS_ENUM(NSInteger, ExportResult) {
     }
 }
 
+- (void)addObserverForPlayer:(AVPlayer*)player;
+{
+    // ビデオの進み具合をプログレスバーに表示するよう登録
+    __weak ViewController *weakSelf = self;
+    self.periodicObserver = [player
+                             addPeriodicTimeObserverForInterval:CMTimeMakeWithSeconds(0.1,NSEC_PER_SEC)
+                             queue:dispatch_get_main_queue()
+                             usingBlock:^(CMTime time) {
+                                 CMTime current = [weakSelf.playbackView.player currentTime];
+                                 CMTime duration = [weakSelf.playbackView.player.currentItem duration];
+                                 Float64 currentSec = CMTimeGetSeconds(current);
+                                 Float64 total = CMTimeGetSeconds(duration);
+                                 weakSelf.progressBar.progress = currentSec/total;
+                             }];
+    
+    // 再生レート監視を登録
+    [player addObserver:self
+             forKeyPath:@"rate"
+                options:(NSKeyValueObservingOptionNew|NSKeyValueObservingOptionOld)
+                context:NULL];
+}
+
+- (void)removeObserverForPlayer:(AVPlayer*)player;
+{
+    if (self.periodicObserver) {
+        [player removeTimeObserver:self.periodicObserver];
+        self.periodicObserver = nil;
+    }
+    [player removeObserver:self forKeyPath:@"rate"];
+}
+
 #pragma mark Editing a movie
 - (void)buildSessionForMediaURL:(NSURL *)url
 {
@@ -276,26 +309,10 @@ typedef NS_ENUM(NSInteger, ExportResult) {
     item.audioTimePitchAlgorithm = self.audioTimePitchAlgorithm;
 
     AVPlayer *player = [AVPlayer playerWithPlayerItem:item];
-    self.playbackView.player = player;
-
-    // ビデオの進み具合をプログレスバーに表示するよう登録
-    __weak ViewController *weakSelf = self;
-    [player
-     addPeriodicTimeObserverForInterval:CMTimeMakeWithSeconds(0.1,NSEC_PER_SEC)
-     queue:dispatch_get_main_queue()
-     usingBlock:^(CMTime time) {
-         CMTime current = [weakSelf.playbackView.player currentTime];
-         CMTime duration = [weakSelf.playbackView.player.currentItem duration];
-         Float64 currentSec = CMTimeGetSeconds(current);
-         Float64 total = CMTimeGetSeconds(duration);
-         weakSelf.progressBar.progress = currentSec/total;
-     }];
     
-    // 再生レート監視を登録
-    [player addObserver:self
-             forKeyPath:@"rate"
-                options:(NSKeyValueObservingOptionNew|NSKeyValueObservingOptionOld)
-                context:NULL];
+    [self removeObserverForPlayer:self.playbackView.player];
+    self.playbackView.player = player;
+    [self addObserverForPlayer:self.playbackView.player];
 
     // スライダーをリセット
     dispatch_async(dispatch_get_main_queue(), ^{
