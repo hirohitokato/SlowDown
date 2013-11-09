@@ -318,8 +318,10 @@ typedef NS_ENUM(NSInteger, ExportResult) {
     [self addObserverForPlayer:self.playbackView.player];
 
     // スライダーをリセット
+    AVAssetTrack *track = [self.asset tracksWithMediaType:AVMediaTypeVideo][0];
+    float newValue = 30/track.nominalFrameRate;
     dispatch_async(dispatch_get_main_queue(), ^{
-        self.rateSlider.value = .25;
+        self.rateSlider.value = newValue;
         [self rateChanged:self.rateSlider];
     });
     self.status = StatusNormal;
