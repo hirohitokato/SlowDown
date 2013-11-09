@@ -13,7 +13,7 @@
 #import "ViewController.h"
 #import "PlayerView.h"
 
-@interface ViewController () <UINavigationControllerDelegate>
+@interface ViewController ()
 @property (weak, nonatomic) IBOutlet PlayerView *playbackView;
 @property (weak, nonatomic) IBOutlet UIProgressView *progressBar;
 
