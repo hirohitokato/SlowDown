@@ -13,7 +13,7 @@
 #import "ViewController.h"
 #import "PlayerView.h"
 
-@interface ViewController () <UINavigationControllerDelegate,UIImagePickerControllerDelegate>
+@interface ViewController () <UINavigationControllerDelegate>
 @property (weak, nonatomic) IBOutlet PlayerView *playbackView;
 @property (weak, nonatomic) IBOutlet UIProgressView *progressBar;
 
@@ -255,27 +255,6 @@ typedef NS_ENUM(NSInteger, ExportResult) {
             });
         }
     });
-}
-
-#pragma mark - UIImagePickerControllerDelegate
-- (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary *)info
-{
-    NSURL *mediaURL = info[UIImagePickerControllerMediaURL];
-    if (mediaURL) {
-        [self buildSessionForMediaURL:mediaURL];
-        self.rateSlider.value = 1.0;
-        [self rateChanged:self.rateSlider];
-
-        if (self.asset && self.playbackView.player) {
-            [self.playbackView.player addObserver:self
-                                       forKeyPath:@"rate"
-                                          options:(NSKeyValueObservingOptionNew|NSKeyValueObservingOptionOld)
-                                          context:NULL];
-        }
-    }
-    self.status = StatusNormal;
-
-    [picker dismissViewControllerAnimated:YES completion:^{}];
 }
 
 #pragma mark - KVO
