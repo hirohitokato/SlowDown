@@ -265,7 +265,7 @@ typedef NS_ENUM(NSInteger, ExportResult) {
 {
     if ([keyPath isEqualToString:@"rate"]) {
         AVPlayer *player = (AVPlayer *)object;
-        if (player.rate < self.rateSlider.minimumValue) {
+        if (player.rate == 0.0) {
             // 停止中
             [self.playButton setTitle:@"Play" forState:UIControlStateNormal];
             self.status = StatusNormal;
