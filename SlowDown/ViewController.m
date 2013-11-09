@@ -97,19 +97,7 @@ typedef NS_ENUM(NSInteger, ExportResult) {
                     AVURLAsset *asset = [AVURLAsset assetWithURL:url];
                     AVAssetTrack *track = [asset tracksWithMediaType:AVMediaTypeVideo][0];
                     if (track.nominalFrameRate > 30) {
-                        dispatch_async(dispatch_get_main_queue(),^{
-                            [self buildSessionForMediaURL:result.defaultRepresentation.url];
-                            self.rateSlider.value = .25;
-                            [self rateChanged:self.rateSlider];
-                            
-                            if (self.asset && self.playbackView.player) {
-                                [self.playbackView.player addObserver:self
-                                                           forKeyPath:@"rate"
-                                                              options:(NSKeyValueObservingOptionNew|NSKeyValueObservingOptionOld)
-                                                              context:NULL];
-                            }
-                            self.status = StatusNormal;
-                        });
+                        [self buildSessionForMediaURL:url];
                         *stop = YES;
                     }
                 }
@@ -302,6 +290,19 @@ typedef NS_ENUM(NSInteger, ExportResult) {
          Float64 total = CMTimeGetSeconds(duration);
          weakSelf.progressBar.progress = currentSec/total;
      }];
+    
+    // 再生レート監視を登録
+    [player addObserver:self
+             forKeyPath:@"rate"
+                options:(NSKeyValueObservingOptionNew|NSKeyValueObservingOptionOld)
+                context:NULL];
+
+    // スライダーをリセット
+    dispatch_async(dispatch_get_main_queue(), ^{
+        self.rateSlider.value = .25;
+        [self rateChanged:self.rateSlider];
+    });
+    self.status = StatusNormal;
 }
 
 #pragma mark - misc methods
