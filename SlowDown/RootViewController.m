@@ -19,6 +19,7 @@
 @property (strong, nonatomic) ALAssetsLibrary *assetsLibrary;
 @property (strong, nonatomic) ALAssetsGroup *assetsGroup;
 @property (strong, nonatomic) NSMutableArray *assets;
+@property (strong, nonatomic) NSMutableArray *infoForAssets;
 
 @end
 
@@ -48,6 +49,7 @@
     _assetsLibrary = [[ALAssetsLibrary alloc]init];
     
     _assets = [NSMutableArray array];
+    _infoForAssets = [NSMutableArray array];
 
     ALAssetsLibraryGroupsEnumerationResultsBlock enumerationBlock = ^(ALAssetsGroup *group, BOOL *stop) {
         if (group) {
@@ -80,15 +82,56 @@
                                               object:nil];
 }
 
+- (NSDictionary*)infoForAsset:(ALAsset*)asset;
+{
+    static id sharedKeySet = nil;
+    static NSCache *cache = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        NSArray *keys = @[@"duration", @"nominalFrameRate"];
+        sharedKeySet = [NSDictionary sharedKeySetForKeys:keys];
+        cache = [[NSCache alloc]init];
+    });
+    
+    // assetのインスタンスは同じurlに対しても毎回変わるので、urlをキーにキャッシュする。
+    NSMutableDictionary *info = [cache objectForKey:asset.defaultRepresentation.url];
+    if (!info) {
+        info = [NSMutableDictionary dictionaryWithSharedKeySet:sharedKeySet];
+        
+        AVAsset *avAsset = [AVURLAsset assetWithURL:asset.defaultRepresentation.url];
+        Float64 seconds = roundf(CMTimeGetSeconds(avAsset.duration));
+        NSDate *date = [NSDate dateWithTimeIntervalSinceReferenceDate:seconds];
+        static NSDateFormatter *formatter = nil;
+        if (!formatter) {
+            formatter = [[NSDateFormatter alloc]init];
+            [formatter setTimeZone:[NSTimeZone timeZoneWithName:@"UTC"]];
+        }
+        if (seconds > 60*60) {
+            [formatter setDateFormat:@"H:mm:ss"];
+        } else {
+            [formatter setDateFormat:@"m:ss"];
+        }
+        info[@"duration"] = [formatter stringFromDate:date];
+        
+        AVAssetTrack *track = [avAsset tracksWithMediaType:AVMediaTypeVideo][0];
+        info[@"nominalFrameRate"] = @(track.nominalFrameRate);
+        
+        [cache setObject:info forKey:asset.defaultRepresentation.url];
+    }
+    return info;
+}
+
 - (void)loadAssets
 {
     dispatch_async(dispatch_get_main_queue(), ^{
         // Manipulating views requires main thread.
         [_assets removeAllObjects];
+        [_infoForAssets removeAllObjects];
         if ([_assetsGroup numberOfAssets]) {
             ALAssetsGroupEnumerationResultsBlock enumerationBlock = ^(ALAsset *asset, NSUInteger index, BOOL *stop) {
                 if (asset) {
                     [_assets addObject:asset];
+                    [_infoForAssets addObject:[self infoForAsset:asset]];
                 }
             };
             [_assetsGroup enumerateAssetsWithOptions:0 usingBlock:enumerationBlock];
@@ -161,25 +204,14 @@
     UIImageView *imageView = (UIImageView *)[cell viewWithTag:kImageViewTag];
     imageView.image = thumbnail;
     
+    NSDictionary *info = _infoForAssets[indexPath.row];
     // apply the duration
-    AVAsset *avAsset = [AVURLAsset assetWithURL:asset.defaultRepresentation.url];
-    Float64 seconds = roundf(CMTimeGetSeconds(avAsset.duration));
-    NSDate *date = [NSDate dateWithTimeIntervalSinceReferenceDate:seconds];
-    NSDateFormatter *formatter = [[NSDateFormatter alloc]init];
-    [formatter setTimeZone:[NSTimeZone timeZoneWithName:@"UTC"]];
-    if (seconds > 60*60) {
-        [formatter setDateFormat:@"H:mm:ss"];
-    } else {
-        [formatter setDateFormat:@"m:ss"];
-    }
-    NSString *secondsString = [formatter stringFromDate:date];
     UILabel *duration = (UILabel*)[cell viewWithTag:kDurationTag];
-    duration.text = secondsString;
+    duration.text = info[@"duration"];
     
     // apply indicator
     UIImageView *indicator = (UIImageView *)[cell viewWithTag:kIndicatorTag];
-    AVAssetTrack *track = [avAsset tracksWithMediaType:AVMediaTypeVideo][0];
-    if (track.nominalFrameRate > 108) {
+    if ([info[@"nominalFrameRate"]floatValue] > 108) {
         indicator.image = [UIImage imageNamed:@"indicatorHighSpeed"];
     } else {
         indicator.image = [UIImage imageNamed:@"indicatorNormal"];
