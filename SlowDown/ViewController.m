@@ -13,7 +13,7 @@
 #import "ViewController.h"
 #import "PlayerView.h"
 
-@interface ViewController () <UINavigationControllerDelegate,UIImagePickerControllerDelegate>
+@interface ViewController ()
 @property (weak, nonatomic) IBOutlet PlayerView *playbackView;
 @property (weak, nonatomic) IBOutlet UIProgressView *progressBar;
 
@@ -23,11 +23,11 @@
 @property (weak, nonatomic) IBOutlet UISlider *rateSlider;
 @property (weak, nonatomic) IBOutlet UILabel *rateLabel;
 
-@property (nonatomic) ALAssetsLibrary *assetsLibrary;
 @property (nonatomic) AVURLAsset *asset;
 @property (nonatomic) AVAssetExportSession *exportSession;
 @property (nonatomic) NSString *audioTimePitchAlgorithm;
 @property (nonatomic) CurrentStatus status;
+@property (nonatomic) id periodicObserver;
 @end
 
 @implementation ViewController
@@ -58,12 +58,17 @@ typedef NS_ENUM(NSInteger, ExportResult) {
      }];
 
     self.status = StatusNormal;
+    
+    if (self.mediaURL) {
+        [self buildSessionForMediaURL:self.mediaURL];
+    }
 }
 
 - (void)dealloc
 {
     [[NSNotificationCenter defaultCenter]
      removeObserver:self];
+    [self removeObserverForPlayer:self.playbackView.player];
 }
 
 - (void)didReceiveMemoryWarning
@@ -97,19 +102,7 @@ typedef NS_ENUM(NSInteger, ExportResult) {
                     AVURLAsset *asset = [AVURLAsset assetWithURL:url];
                     AVAssetTrack *track = [asset tracksWithMediaType:AVMediaTypeVideo][0];
                     if (track.nominalFrameRate > 30) {
-                        dispatch_async(dispatch_get_main_queue(),^{
-                            [self buildSessionForMediaURL:result.defaultRepresentation.url];
-                            self.rateSlider.value = .25;
-                            [self rateChanged:self.rateSlider];
-                            
-                            if (self.asset && self.playbackView.player) {
-                                [self.playbackView.player addObserver:self
-                                                           forKeyPath:@"rate"
-                                                              options:(NSKeyValueObservingOptionNew|NSKeyValueObservingOptionOld)
-                                                              context:NULL];
-                            }
-                            self.status = StatusNormal;
-                        });
+                        [self buildSessionForMediaURL:url];
                         *stop = YES;
                     }
                 }
@@ -257,27 +250,6 @@ typedef NS_ENUM(NSInteger, ExportResult) {
     });
 }
 
-#pragma mark - UIImagePickerControllerDelegate
-- (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary *)info
-{
-    NSURL *mediaURL = info[UIImagePickerControllerMediaURL];
-    if (mediaURL) {
-        [self buildSessionForMediaURL:mediaURL];
-        self.rateSlider.value = 1.0;
-        [self rateChanged:self.rateSlider];
-
-        if (self.asset && self.playbackView.player) {
-            [self.playbackView.player addObserver:self
-                                       forKeyPath:@"rate"
-                                          options:(NSKeyValueObservingOptionNew|NSKeyValueObservingOptionOld)
-                                          context:NULL];
-        }
-    }
-    self.status = StatusNormal;
-
-    [picker dismissViewControllerAnimated:YES completion:^{}];
-}
-
 #pragma mark - KVO
 - (void)observeValueForKeyPath:(NSString *)keyPath
                       ofObject:(id)object
@@ -286,7 +258,7 @@ typedef NS_ENUM(NSInteger, ExportResult) {
 {
     if ([keyPath isEqualToString:@"rate"]) {
         AVPlayer *player = (AVPlayer *)object;
-        if (player.rate < self.rateSlider.minimumValue) {
+        if (player.rate == 0.0) {
             // 停止中
             [self.playButton setTitle:@"Play" forState:UIControlStateNormal];
             self.status = StatusNormal;
@@ -296,6 +268,37 @@ typedef NS_ENUM(NSInteger, ExportResult) {
             self.status = StatusPlaying;
         }
     }
+}
+
+- (void)addObserverForPlayer:(AVPlayer*)player;
+{
+    // ビデオの進み具合をプログレスバーに表示するよう登録
+    __weak ViewController *weakSelf = self;
+    self.periodicObserver = [player
+                             addPeriodicTimeObserverForInterval:CMTimeMakeWithSeconds(0.1,NSEC_PER_SEC)
+                             queue:dispatch_get_main_queue()
+                             usingBlock:^(CMTime time) {
+                                 CMTime current = [weakSelf.playbackView.player currentTime];
+                                 CMTime duration = [weakSelf.playbackView.player.currentItem duration];
+                                 Float64 currentSec = CMTimeGetSeconds(current);
+                                 Float64 total = CMTimeGetSeconds(duration);
+                                 weakSelf.progressBar.progress = currentSec/total;
+                             }];
+    
+    // 再生レート監視を登録
+    [player addObserver:self
+             forKeyPath:@"rate"
+                options:(NSKeyValueObservingOptionNew|NSKeyValueObservingOptionOld)
+                context:NULL];
+}
+
+- (void)removeObserverForPlayer:(AVPlayer*)player;
+{
+    if (self.periodicObserver) {
+        [player removeTimeObserver:self.periodicObserver];
+        self.periodicObserver = nil;
+    }
+    [player removeObserver:self forKeyPath:@"rate"];
 }
 
 #pragma mark Editing a movie
@@ -309,20 +312,19 @@ typedef NS_ENUM(NSInteger, ExportResult) {
     item.audioTimePitchAlgorithm = self.audioTimePitchAlgorithm;
 
     AVPlayer *player = [AVPlayer playerWithPlayerItem:item];
+    
+    [self removeObserverForPlayer:self.playbackView.player];
     self.playbackView.player = player;
+    [self addObserverForPlayer:self.playbackView.player];
 
-    // ビデオの進み具合をプログレスバーに表示するよう登録
-    __weak ViewController *weakSelf = self;
-    [player
-     addPeriodicTimeObserverForInterval:CMTimeMakeWithSeconds(0.1,NSEC_PER_SEC)
-     queue:dispatch_get_main_queue()
-     usingBlock:^(CMTime time) {
-         CMTime current = [weakSelf.playbackView.player currentTime];
-         CMTime duration = [weakSelf.playbackView.player.currentItem duration];
-         Float64 currentSec = CMTimeGetSeconds(current);
-         Float64 total = CMTimeGetSeconds(duration);
-         weakSelf.progressBar.progress = currentSec/total;
-     }];
+    // スライダーをリセット
+    AVAssetTrack *track = [self.asset tracksWithMediaType:AVMediaTypeVideo][0];
+    float newValue = 30/track.nominalFrameRate;
+    dispatch_async(dispatch_get_main_queue(), ^{
+        self.rateSlider.value = newValue;
+        [self rateChanged:self.rateSlider];
+    });
+    self.status = StatusNormal;
 }
 
 #pragma mark - misc methods
