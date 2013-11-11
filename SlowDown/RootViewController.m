@@ -114,7 +114,7 @@
             ALAsset *asset = _assets[indexPath.row];
             ViewController* viewController = segue.destinationViewController;
             viewController.assetsLibrary = _assetsLibrary;
-            viewController.mediaURL = asset.defaultRepresentation.url;
+            viewController.alAsset = asset;
         }
     }
 }
