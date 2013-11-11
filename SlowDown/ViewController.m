@@ -101,7 +101,7 @@ typedef NS_ENUM(NSInteger, ExportResult) {
                     NSURL *url = result.defaultRepresentation.url;
                     AVURLAsset *asset = [AVURLAsset assetWithURL:url];
                     AVAssetTrack *track = [asset tracksWithMediaType:AVMediaTypeVideo][0];
-                    if (track.nominalFrameRate > 30) {
+                    if (!result.originalAsset && track.nominalFrameRate > 30) {
                         self.alAsset = result;
                         [self buildSessionForMediaURL:url];
                         *stop = YES;
