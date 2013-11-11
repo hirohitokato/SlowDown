@@ -59,8 +59,8 @@ typedef NS_ENUM(NSInteger, ExportResult) {
 
     self.status = StatusNormal;
     
-    if (self.mediaURL) {
-        [self buildSessionForMediaURL:self.mediaURL];
+    if (self.alAsset) {
+        [self buildSessionForMediaURL:self.alAsset.defaultRepresentation.url];
     }
 }
 
@@ -101,7 +101,8 @@ typedef NS_ENUM(NSInteger, ExportResult) {
                     NSURL *url = result.defaultRepresentation.url;
                     AVURLAsset *asset = [AVURLAsset assetWithURL:url];
                     AVAssetTrack *track = [asset tracksWithMediaType:AVMediaTypeVideo][0];
-                    if (track.nominalFrameRate > 30) {
+                    if (!result.originalAsset && track.nominalFrameRate > 30) {
+                        self.alAsset = result;
                         [self buildSessionForMediaURL:url];
                         *stop = YES;
                     }
@@ -216,21 +217,21 @@ typedef NS_ENUM(NSInteger, ExportResult) {
     // エクスポート開始
     self.status = StatusExporting;
     __weak AVAssetExportSession *weakSession = self.exportSession;
-    __weak ALAssetsLibrary *weakAssetsLibrary = self.assetsLibrary;
+    ALAsset *originalAsset = self.alAsset;
 	[self.exportSession exportAsynchronouslyWithCompletionHandler:^{
         NSLog(@"エクスポート処理から戻りました。url:%@", weakSession.outputURL);
 
         if (weakSession.status == AVAssetExportSessionStatusCompleted) {
             // カメラロールへの書き込み。
-            [weakAssetsLibrary writeVideoAtPathToSavedPhotosAlbum:weakSession.outputURL
-                                                  completionBlock:^(NSURL *assetURL,
-                                                                    NSError *error) {
-                                                      if (error) {
-                                                          [self showAlertForResult:ExportResultFailure];
-                                                      } else {
-                                                          [self showAlertForResult:ExportResultSuccess];
-                                                      }
-                                                  }];
+            [originalAsset writeModifiedVideoAtPathToSavedPhotosAlbum:weakSession.outputURL
+                                                      completionBlock:^(NSURL *assetURL,
+                                                                        NSError *error) {
+                                                          if (error) {
+                                                              [self showAlertForResult:ExportResultFailure];
+                                                          } else {
+                                                              [self showAlertForResult:ExportResultSuccess];
+                                                          }
+                                                      }];
         } else if (weakSession.status == AVAssetExportSessionStatusCancelled) {
             [self showAlertForResult:ExportResultCancelled];
         } else {

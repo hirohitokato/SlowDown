@@ -17,6 +17,6 @@ typedef NS_ENUM(NSInteger, CurrentStatus) {
 @interface ViewController : UIViewController
 
 @property (nonatomic) ALAssetsLibrary *assetsLibrary;
-@property (nonatomic) NSURL *mediaURL;
+@property (nonatomic) ALAsset *alAsset;
 
 @end
