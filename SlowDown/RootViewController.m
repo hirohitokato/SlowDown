@@ -179,7 +179,7 @@
     // apply indicator
     UIImageView *indicator = (UIImageView *)[cell viewWithTag:kIndicatorTag];
     AVAssetTrack *track = [avAsset tracksWithMediaType:AVMediaTypeVideo][0];
-    if (track.nominalFrameRate > 30) {
+    if (track.nominalFrameRate > 108) {
         indicator.image = [UIImage imageNamed:@"indicatorHighSpeed"];
     } else {
         indicator.image = [UIImage imageNamed:@"indicatorNormal"];
