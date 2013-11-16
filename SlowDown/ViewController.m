@@ -162,9 +162,9 @@ typedef NS_ENUM(NSInteger, ExportResult) {
 
     AVMutableVideoComposition *videoComposition = nil;
     // 最大120fpsとする
-    CMTime outputDuration = CMTimeMultiplyByFloat64(videoAssetTrack.minFrameDuration, 1.0/self.rateSlider.value);
-    if (CMTimeCompare(outputDuration, CMTimeMake(1, 120)) < 0) {
-        outputDuration = CMTimeMake(1, 120);
+    CMTime outputFrameDuration = CMTimeMultiplyByFloat64(videoAssetTrack.minFrameDuration, 1.0/self.rateSlider.value);
+    if (CMTimeCompare(outputFrameDuration, CMTimeMake(1, 120)) < 0) {
+        outputFrameDuration = CMTimeMake(1, 120);
         // フレームレートを120fps上限とするためのインストラクション・ビデオコンポジション作成。
         // （不透明にしてオリエンテーションをオリジナルに合わせる）
         AVMutableVideoCompositionLayerInstruction *instruction =
@@ -177,7 +177,7 @@ typedef NS_ENUM(NSInteger, ExportResult) {
         videoCompositionInstruction.timeRange = CMTimeRangeMake(kCMTimeZero, newDuration);
         
         videoComposition = [AVMutableVideoComposition videoComposition];
-        videoComposition.frameDuration = outputDuration;
+        videoComposition.frameDuration = outputFrameDuration;
         
         // オリエンテーションを反映したレンダリングサイズを指定
         CGSize renderSize =CGSizeApplyAffineTransform([videoAssetTrack naturalSize],
