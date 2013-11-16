@@ -155,11 +155,12 @@ typedef NS_ENUM(NSInteger, ExportResult) {
 
     AVMutableVideoComposition *videoComposition = nil;
     // 最大120fpsとする
+    CMTime minFrameDuration = CMTimeMake(5, 600);   // 1/120
     float frameRate = videoAssetTrack.nominalFrameRate;
     frameRate *= self.rateSlider.value;
     CMTime outputFrameDuration = CMTimeMakeWithSeconds(1.0 / frameRate, timescale);
-    if (CMTimeCompare(outputFrameDuration, CMTimeMake(1, 120)) < 0) {
-        outputFrameDuration = CMTimeMake(1, 120);
+    if (CMTIME_COMPARE_INLINE(outputFrameDuration, <, minFrameDuration)) {
+        outputFrameDuration = minFrameDuration;
         // フレームレートを120fps上限とするためのインストラクション・ビデオコンポジション作成。
         // （不透明にしてオリエンテーションをオリジナルに合わせる）
         AVMutableVideoCompositionLayerInstruction *instruction =
