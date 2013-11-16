@@ -153,8 +153,14 @@ typedef NS_ENUM(NSInteger, ExportResult) {
                         ofTrack:audioAssetTrack
                          atTime:kCMTimeZero
                           error:nil];
-    CMTime newDuration = CMTimeMultiplyByFloat64(self.asset.duration,
-                                                 1.0/self.rateSlider.value);
+    
+    // timescaleを合わせるため、CMTime -> seconds -> CMTime とする。
+    CMTimeScale timescale = videoAssetTrack.naturalTimeScale;
+    CMTime duration = self.asset.duration;
+    Float64 seconds = CMTimeGetSeconds(duration);
+    Float64 newSeconds = seconds / self.rateSlider.value;
+    CMTime newDuration = CMTimeMakeWithSeconds(newSeconds, timescale);
+    
     [videoTrack scaleTimeRange:CMTimeRangeMake(kCMTimeZero, self.asset.duration)
                     toDuration:newDuration];
     [audioTrack scaleTimeRange:CMTimeRangeMake(kCMTimeZero, self.asset.duration)
