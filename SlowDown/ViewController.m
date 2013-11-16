@@ -133,26 +133,14 @@ typedef NS_ENUM(NSInteger, ExportResult) {
 - (IBAction)export:(id)sender {
     // アセットからトラックを取得
     AVAssetTrack *videoAssetTrack = [self.asset tracksWithMediaType:AVMediaTypeVideo][0];
-    AVAssetTrack *audioAssetTrack = [self.asset tracksWithMediaType:AVMediaTypeAudio][0];
 
     // 現在の再生レートを適用したコンポジションを作成
     AVMutableComposition *composition = [AVMutableComposition composition];
-    AVMutableCompositionTrack *videoTrack =
-    [composition addMutableTrackWithMediaType:AVMediaTypeVideo
-                             preferredTrackID:kCMPersistentTrackID_Invalid];
-    AVMutableCompositionTrack *audioTrack =
-    [composition addMutableTrackWithMediaType:AVMediaTypeAudio
-                             preferredTrackID:kCMPersistentTrackID_Invalid];
-
-    // アセットのトラックをコンポジション上に挿入し、再生レートを指定
-    [videoTrack insertTimeRange:CMTimeRangeMake(kCMTimeZero, self.asset.duration)
-                        ofTrack:videoAssetTrack
-                         atTime:kCMTimeZero
-                          error:nil];
-    [audioTrack insertTimeRange:CMTimeRangeMake(kCMTimeZero, self.asset.duration)
-                        ofTrack:audioAssetTrack
-                         atTime:kCMTimeZero
-                          error:nil];
+    [composition insertTimeRange:CMTimeRangeMake(kCMTimeZero, self.asset.duration)
+                         ofAsset:self.asset
+                          atTime:kCMTimeZero
+                           error:nil];
+    AVMutableCompositionTrack *videoTrack = [composition mutableTrackCompatibleWithTrack:videoAssetTrack];
     
     // timescaleを合わせるため、CMTime -> seconds -> CMTime とする。
     CMTimeScale timescale = videoAssetTrack.naturalTimeScale;
@@ -161,10 +149,9 @@ typedef NS_ENUM(NSInteger, ExportResult) {
     Float64 newSeconds = seconds / self.rateSlider.value;
     CMTime newDuration = CMTimeMakeWithSeconds(newSeconds, timescale);
     
-    [videoTrack scaleTimeRange:CMTimeRangeMake(kCMTimeZero, self.asset.duration)
-                    toDuration:newDuration];
-    [audioTrack scaleTimeRange:CMTimeRangeMake(kCMTimeZero, self.asset.duration)
-                    toDuration:newDuration];
+    // 再生レートを指定
+    [composition scaleTimeRange:CMTimeRangeMake(kCMTimeZero, self.asset.duration)
+                     toDuration:newDuration];
 
     AVMutableVideoComposition *videoComposition = nil;
     // 最大120fpsとする
