@@ -155,7 +155,9 @@ typedef NS_ENUM(NSInteger, ExportResult) {
 
     AVMutableVideoComposition *videoComposition = nil;
     // 最大120fpsとする
-    CMTime outputFrameDuration = CMTimeMultiplyByFloat64(videoAssetTrack.minFrameDuration, 1.0/self.rateSlider.value);
+    float frameRate = videoAssetTrack.nominalFrameRate;
+    frameRate *= self.rateSlider.value;
+    CMTime outputFrameDuration = CMTimeMakeWithSeconds(1.0 / frameRate, timescale);
     if (CMTimeCompare(outputFrameDuration, CMTimeMake(1, 120)) < 0) {
         outputFrameDuration = CMTimeMake(1, 120);
         // フレームレートを120fps上限とするためのインストラクション・ビデオコンポジション作成。
